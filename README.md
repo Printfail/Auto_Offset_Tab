@@ -86,14 +86,16 @@ Bearbeite `~/printer_data/config/Auto_Offset/Auto_Offset_Variables.cfg`:
 
 * `measure_x` / `measure_y` → Position des **Messplatzes** die Koordinaten des zweiten Sensors)
 * `measure_z_lift` → Sicherheits-Hubhöhe vor der Messung
-* `sensor_offset_path` → Pfad zu deinem zweiten Sensor
-  (z. B. `mmu.sensors.toolhead`, `sensorhub`, `probe`)
+* `sensor_pin` → Pin von deinem zweiten Sensor (Messplatz)
 * `led_name`, `clean_macro` → optional für LED-Signalisierung oder automatisches Düsenreinigen
 
 > 💡 **Hinweis:**
 > Der **Messplatz** ist die physische Position auf deinem Druckbett, an der der zweite Sensor die Messung durchführt.
 > Diese Koordinaten müssen exakt zu deinem Aufbau passen – idealerweise ein sauberer, plan geschliffener Bereich oder ein kleines Messpad.
 > Ein falsch definierter Messplatz kann fehlerhafte Z-Offsets oder Sensorausfälle verursachen.
+> Der Messplatz sollte eine glatte, ebene und leitfähige Fläche sein, die direkt mit dem definierten Sensor-Pin verbunden ist.
+  Die Düse (Nozzle) dient dabei als zweiter Kontakt und wird mit GND (Masse) verbunden.
+  Beim Kontakt zwischen Düse und Messfläche schließt sich der Stromkreis, wodurch der Sensor den Auslösepunkt exakt erkennt.
 
 ```gcode
 RESTART
