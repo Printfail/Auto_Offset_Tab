@@ -16,7 +16,7 @@ Automatische Z-Offset Messung für Klipper
 
 ## 📈 Plots & Visualisierung
 
-Das Modul erstellt automatisch **professionelle Plots** deiner Z-Offset Messungen im **Shake&Tune Design**:
+Das Modul erstellt automatisch **professionelle Plots** deiner Z-Offset Messung:
 
 ### 📊 History Plot
 Zeigt alle bisherigen Messungen über die Zeit - perfekt um Trends zu erkennen:
