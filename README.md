@@ -65,6 +65,39 @@ chmod +x install.sh  # Execute-Rechte setzen
 
 > 💡 **Tipp:** Methode 1 installiert automatisch ohne Menüinteraktion.
 
+```
+## 🔄 Auto-Updates (optional)
+
+Für automatische Update-Benachrichtigungen in Mainsail/Fluidd:
+
+### **Moonraker Update Manager aktivieren**
+
+Füge in `~/printer_data/config/moonraker.conf` ein:
+
+```ini
+[update_manager auto_offset]
+type: git_repo
+channel: dev
+path: ~/Auto_Offset_Tab
+origin: https://github.com/Printfail/Auto_Offset_Tab.git
+managed_services: klipper
+primary_branch: main
+install_script: install.sh
+```
+
+Danach Moonraker neu starten:
+
+```bash
+sudo systemctl restart moonraker
+```
+
+✅ **Fertig!** Updates erscheinen jetzt automatisch in der Web-UI!
+
+**Wie es funktioniert:**
+- Moonraker prüft regelmäßig auf neue GitHub-Commits
+- Bei Updates erscheint ein **Update-Button** in Mainsail/Fluidd
+- 1-Klick Installation: `git pull` + `install.sh` + `klipper restart`
+
 ---
 
 ### **printer.cfg anpassen**
@@ -133,41 +166,6 @@ sensor_pin: ^!PG14
 # OPTION 2: Existierender Sensor (z. B. von MMU)
 #sensor_offset_path: mmu.sensors.toolhead
 ```
-
----
-
-## 🔄 Auto-Updates (optional)
-
-Für automatische Update-Benachrichtigungen in Mainsail/Fluidd:
-
-### **Moonraker Update Manager aktivieren**
-
-Füge in `~/printer_data/config/moonraker.conf` ein:
-
-```ini
-[update_manager auto_offset]
-type: git_repo
-channel: dev
-path: ~/Auto_Offset_Tab
-origin: https://github.com/Printfail/Auto_Offset_Tab.git
-managed_services: klipper
-primary_branch: main
-install_script: install.sh
-```
-
-Danach Moonraker neu starten:
-
-```bash
-sudo systemctl restart moonraker
-```
-
-✅ **Fertig!** Updates erscheinen jetzt automatisch in der Web-UI!
-
-**Wie es funktioniert:**
-- Moonraker prüft regelmäßig auf neue GitHub-Commits
-- Bei Updates erscheint ein **Update-Button** in Mainsail/Fluidd
-- 1-Klick Installation: `git pull` + `install.sh` + `klipper restart`
-
 ---
 
 ## 📖 Verwendung
