@@ -105,6 +105,39 @@ AUTO_OFFSET_START
 
 ---
 
+### **Sensor-Konfiguration**
+
+In Phase 3 der Messung (**SENSOR_OFFSET**) wird der zweite Sensor abgefragt, um den tatsächlichen Z-Versatz zwischen TAP und Zusatzsensor zu bestimmen.
+Nur **eine** der folgenden Optionen darf aktiv sein:
+
+| Option                         | Beschreibung                                                                                                                                                | Beispiel                                   |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **1️⃣ Eigener Sensor-Pin**     | Direkte Verbindung zu einem physischen Eingangspin am Controllerboard. Verwende dies, wenn du einen separaten Kontaktblock oder Messsensor verdrahtet hast. | `sensor_pin: ^!PG14`                       |
+| **2️⃣ Bestehender Sensorpfad** | Nutzt bereits definierte Sensoren aus Klipper, z. B. von der MMU oder vom Toolhead.                                                                         | `sensor_offset_path: mmu.sensors.toolhead` |
+
+> ⚠️ **Wichtig:**
+> – Nur **eine Option aktivieren**, die andere mit `#` auskommentieren.
+> – `!` bedeutet invertiertes Signal (TRIGGERED = 1, OPEN = 0).
+> – Prüfe die Polarität deines Sensors, sonst kann die Messung fehlschlagen.
+> – Wenn du den Pfad aus Klipper nutzt, muss der Sensor im System bereits existieren (z. B. unter `[mmu.sensors.toolhead]`).
+
+Beispiel:
+
+```ini
+# ═══════════════════════════════════════════════════════════════════
+# PHASE 3: SENSOR-OFFSET-MESSUNG (SENSOR_OFFSET)
+# ═══════════════════════════════════════════════════════════════════
+# Sensor-Auswahl (nur EINE Option aktiv lassen!)
+
+# OPTION 1: Eigener Sensor-Pin 
+sensor_pin: ^!PG14
+
+# OPTION 2: Existierender Sensor (z. B. von MMU)
+#sensor_offset_path: mmu.sensors.toolhead
+```
+
+---
+
 ## 📖 Verwendung
 
 ```gcode
