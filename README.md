@@ -84,8 +84,7 @@ filename: ~/printer_data/config/variables.cfg
 
 Bearbeite `~/printer_data/config/Auto_Offset/Auto_Offset_Variables.cfg`:
 
-* `measure_x` / `measure_y` → Position des **Messplatzes** auf dem Bett
-  (normalerweise Bettmitte oder die Koordinaten des zweiten Sensors)
+* `measure_x` / `measure_y` → Position des **Messplatzes** die Koordinaten des zweiten Sensors)
 * `measure_z_lift` → Sicherheits-Hubhöhe vor der Messung
 * `sensor_offset_path` → Pfad zu deinem zweiten Sensor
   (z. B. `mmu.sensors.toolhead`, `sensorhub`, `probe`)
