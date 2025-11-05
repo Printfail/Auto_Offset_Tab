@@ -1246,9 +1246,35 @@ class AutoOffset:
         if direction == 'down':
             # DOWN until TRIGGERED (like original PROBE!)
             
-            # Sensor must be OPEN at start
+            # Check if sensor is OPEN at start
             if self._query_custom_sensor():
-                raise self.gcode.error("❌ Sensor ist bereits TRIGGERED beim Start!")
+                # Sensor TRIGGERED → Fahre erst hoch bis OPEN!
+                self._debug("SENSOR_MOVE", 2, f"⚠️ Sensor bereits TRIGGERED → fahre hoch bis OPEN...")
+                
+                # Move up in small steps until OPEN
+                up_target_z = start_pos[2] + 10.0
+                step_size = 0.05  # 50 micrometers
+                current_z = start_pos[2]
+                
+                while current_z < up_target_z:
+                    current_z += step_size
+                    if current_z > up_target_z:
+                        current_z = up_target_z
+                    
+                    self.toolhead.manual_move([None, None, current_z], speed)
+                    self.toolhead.wait_moves()
+                    
+                    if not self._query_custom_sensor():
+                        # OPEN gefunden!
+                        self._debug("SENSOR_MOVE", 2, f"✅ Sensor OPEN bei Z={current_z:.6f} mm")
+                        # Update start position für down move
+                        start_pos = self.toolhead.get_position()
+                        target_pos = list(start_pos)
+                        target_pos[2] = target_z
+                        break
+                else:
+                    # Konnte OPEN nicht finden
+                    raise self.gcode.error(f"❌ Konnte Sensor nicht OPEN bekommen (bis Z={up_target_z:.6f}mm)")
             
             if sensor_mcu_endstop is not None:
                 # ⚡ HARDWARE-MCU AVAILABLE - µs PRECISION!
@@ -1345,8 +1371,15 @@ class AutoOffset:
             return result_pos[2]
     
     def _finish_measurement(self):
-        """Finish measurement and show results"""
+        """Finish measurement and show results
+        OPTIMIZED ORDER: 1.Moves first 2.CPU-intensive plots 3.LEDs last
+        This prevents MCU overload by separating MCU commands and CPU work!
+        """
         self._debug("AUTO_OFFSET", 1, "✅ Z-Offset Messung beendet.")
+        
+        # ═══════════════════════════════════════════════════════════
+        # PHASE 1: BERECHNUNGEN (schnell, kein MCU)
+        # ═══════════════════════════════════════════════════════════
         
         # Calculate delta
         delta = self.tap_distance_new - self.tap_distance_old
@@ -1365,8 +1398,6 @@ class AutoOffset:
         self.gcode.respond_info(f"⚙️ Z-Offset: {total_offset:.6f} mm")
         
         # WICHTIG: ERST aktuellen probe.z_offset auslesen (VOR dem Überschreiben!)
-        # Nutze den offiziellen Klipper-Weg über probe.get_offsets()
-        # Das liest den Wert aus der printer.cfg (inkl. SAVE_CONFIG Sektion)
         try:
             x_offset, y_offset, current_probe_offset = self.probe.get_offsets()
             self._debug("OFFSET", 2, f"📖 z_offset aus probe.get_offsets(): {current_probe_offset}")
@@ -1374,29 +1405,33 @@ class AutoOffset:
             self._debug("OFFSET", 1, f"⚠️ Konnte z_offset nicht auslesen: {e}")
             current_probe_offset = 0.0
         
-        # Debug-Ausgabe: Alte und neue Werte (nur bei DEBUG=1+)
+        # Debug-Ausgabe: Alte und neue Werte
         self._debug("OFFSET", 1, f"💾 Aktueller probe.z_offset (aus Config): {current_probe_offset:.6f} mm")
         self._debug("OFFSET", 1, f"💾 Neuer probe.z_offset (gemessen): {neg_offset:.6f} mm")
         
-        # Berechne Delta (Unterschied zwischen neu und alt)
-        # probe.z_offset: negativ (z.B. -0.6525 = "Nozzle ist 0.6525mm tiefer")
+        # Berechne Delta
         delta_offset = neg_offset - current_probe_offset
         self._debug("OFFSET", 1, f"📊 Delta probe.z_offset: {delta_offset:.6f} mm")
         
-        # WICHTIG: Für SET_GCODE_OFFSET müssen wir das Vorzeichen UMKEHREN!
-        # probe.z_offset = -0.6525 → SET_GCODE_OFFSET Z=+0.6525
-        # Warum? probe.z_offset sagt "Nozzle ist tiefer" (negativ)
-        #       SET_GCODE_OFFSET sagt "gehe höher" (positiv)
+        # Vorzeichen umkehren für GCODE
         delta_gcode_offset = -delta_offset
         self._debug("OFFSET", 1, f"📊 Delta für GCODE Offset: {delta_gcode_offset:+.6f} mm")
         
-        # Update probe.z_offset - für SAVE_CONFIG (überschreibt alten Wert)
+        # Update probe.z_offset
         try:
             configfile = self.printer.lookup_object('configfile')
             configfile.set('probe', 'z_offset', str(neg_offset))
             self.gcode.respond_info(f"✅ probe.z_offset aktualisiert → SAVE_CONFIG zum dauerhaften Speichern")
         except Exception as e:
             self.gcode.respond_info(f"⚠️ Konnte probe.z_offset nicht updaten: {e}")
+        
+        # Speichere DELTA für später
+        self.final_delta_offset = delta_gcode_offset
+        self.gcode.respond_info(f"📝 Führe SAVE_CONFIG aus um dauerhaft zu speichern")
+        
+        # ═══════════════════════════════════════════════════════════
+        # PHASE 2: MCU MOVES (alle auf einmal, dann fertig!)
+        # ═══════════════════════════════════════════════════════════
         
         # Move up and home
         self.gcode.run_script_from_command("G90")
@@ -1405,30 +1440,28 @@ class AutoOffset:
         self.gcode.run_script_from_command("G28 Z")
         self.gcode.run_script_from_command("M400")
         
-        # Speichere DELTA für SET_GCODE_OFFSET nach RESTORE_GCODE_STATE
-        # Delta ist der Unterschied: wenn alter Offset schon aktiv ist,
-        # müssen wir nur die Differenz addieren!
-        # WICHTIG: Mit umgekehrtem Vorzeichen für GCODE!
-        self.final_delta_offset = delta_gcode_offset
-        
-        self.gcode.respond_info(f"📝 Führe SAVE_CONFIG aus um dauerhaft zu speichern")
-        
-        # Park
+        # Park - MCU jetzt zur Ruheposition!
         self.gcode.run_script_from_command(f"G0 X{self.park_x} Y{self.park_y} Z{self.park_z} F6000")
-        self.gcode.run_script_from_command("M400")
+        self.gcode.run_script_from_command("M400")  # Warte bis alles fertig!
         
         # Turn off heaters
         self.gcode.run_script_from_command("M104 S0")
         self.gcode.run_script_from_command("M140 S0")
         
-        # Save values
+        # ═══════════════════════════════════════════════════════════
+        # PHASE 3: VARIABLEN SPEICHERN (I/O, kein MCU)
+        # ═══════════════════════════════════════════════════════════
+        
         self._save_variable('tap_last_distance', self.tap_distance_new)
         self._save_variable('sensor_offset_value', self.sensor_offset_value)
         self._save_variable('macro_execution_count', self.macro_execution_count)
         
         self.gcode.respond_info(f"💾 Gespeichert: Schaltabstand={self.tap_distance_new:.6f} mm | Z-Offset={self.sensor_offset_value:.6f} mm")
         
-        # Save measurement to history and create plots (only if actually measured)
+        # ═══════════════════════════════════════════════════════════
+        # PHASE 4: PLOTS ERSTELLEN (CPU 100%, aber MCU ruht! ✅)
+        # ═══════════════════════════════════════════════════════════
+        
         if self.trigger_distance_enable_rt and self.tap_distance_new > 0:
             # Get current temperatures
             try:
@@ -1442,17 +1475,21 @@ class AutoOffset:
                 bed_temp = 0.0
             
             # Save measurement to history and create plots
+            # MCU ist jetzt IDLE - keine Konkurrenz! ✅
             self._save_measurement_history(total_offset, nozzle_temp, bed_temp)
         else:
             self._debug("AUTO_OFFSET", 1, "ℹ️ Auswertung übersprungen (keine Trigger Distance Messung)")
         
-        # Z offset wurde bereits früher gesetzt (nach G28 Z)
-        # Kein doppeltes SET_GCODE_OFFSET hier!
+        # ═══════════════════════════════════════════════════════════
+        # PHASE 5: LED SUCCESS (ganz am Ende, MCU hat Zeit! ✅)
+        # ═══════════════════════════════════════════════════════════
         
-        # LED Success Feedback
         self._led_success()
         
-        # Easter Egg 5 Check (LOCKED - Counter-basiert)
+        # ═══════════════════════════════════════════════════════════
+        # PHASE 6: EASTER EGGS (optional, am allerletzten)
+        # ═══════════════════════════════════════════════════════════
+        
         if self.macro_execution_count == self.measurement_count_milestone:
             self.gcode.respond_info(" ")
             self.gcode.respond_info("🎊 ═══════════════════════════════════════════ 🎊")
