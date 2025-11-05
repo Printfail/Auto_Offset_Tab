@@ -1,4 +1,4 @@
- # 🎯 Klipper Auto Z-Offset
+ # 🎯 Klipper Auto Z-Offset für TAB
 
 Automatische Z-Offset Messung für Klipper
 
@@ -7,7 +7,6 @@ Automatische Z-Offset Messung für Klipper
 - 🚀 **schnelle Messungen**
 - 🎯 **Hochpräzise** (±0.0075mm mit 6 Nachkommastellen)
 - 📊 **Delta-Offset System** - Korrekte Berechnung bei mehrfachen Messungen
-- 🧪 **Multi-Sensor Support** (TAP, Endstops, MMU, Custom MCU)
 - 📈 **Plots** - History & Current Plots
 - 🔧 **3 Debug-Level** (0=Clean, 1=Details, 2=Maximum)
 - ⚡ **Optimierte 2. Messung** - Nutzt gespeicherte Werte
@@ -31,7 +30,6 @@ Zeigt detaillierte Statistiken der aktuellen Messung:
 **Plot Features:**
 - 📊 Automatische CSV-Speicherung aller Messungen
 - 📈 Trend-Erkennung über Zeit (History)
-- 🎨 Shake&Tune inspiriertes Design
 - 📁 Speicherort: `~/printer_data/config/Auto_Offset/Auswertung/`
 - 🖼️ PNG-Export für Mainsail/Fluidd Ansicht
 
@@ -73,7 +71,7 @@ chmod +x install.sh  # Execute-Rechte setzen
 
 ```ini
 # Füge hinzu:
-[include Auto_Offset/Auto_Offset_Variables.cfg]
+[include Auto_Offset/*.cfg]
 
 # Falls noch nicht vorhanden:
 [save_variables]
@@ -102,7 +100,6 @@ Bearbeite `~/printer_data/config/Auto_Offset/Auto_Offset_Variables.cfg`:
 RESTART
 AUTO_OFFSET_START
 ```
-
 ---
 
 ### **Sensor-Konfiguration**
@@ -160,7 +157,7 @@ AUTO_OFFSET_START DEBUG=2
 
 **Warum wichtig?** Bei mehrfachen Messungen (z.B. nach Düsenwechsel, Wartung) würde ein normales Makro den alten Offset einfach überschreiben und könnte zu falschen Werten führen.
 
-**Unsere Lösung:** Das Modul berechnet **Delta-Offsets** - es erkennt was sich geändert hat und wendet nur die Differenz an:
+**Meine Lösung:** Das Modul berechnet **Delta-Offsets** - es erkennt was sich geändert hat und wendet nur die Differenz an:
 - **1. Messung:** Neuer Offset wird komplett gespeichert
 - **2.+ Messung:** Nur die **Differenz** zum vorherigen Offset wird angewendet
 - **Kein doppeltes Zählen!** Alter Offset wird automatisch berücksichtigt
@@ -180,24 +177,6 @@ AUTO_OFFSET_START DEBUG=2
 | **0** | Normale User | Nur wichtigste Infos (Schaltabstand, Z-Offset, Delta) | `AUTO_OFFSET_START DEBUG=0` |
 | **1** | Troubleshooting | + Delta-Berechnung, Offset-Vergleich, Kategorien | `AUTO_OFFSET_START DEBUG=1` |
 | **2** | Entwickler | + MCU States, Bewegungen, Sensor-Queries, alle Details | `AUTO_OFFSET_START DEBUG=2` |
-
----
-
-## 🔧 Wichtige Einstellungen
-
-```ini
-[auto_offset]
-measure_x: 175.0              # Bett-Mitte X
-measure_y: 175.0              # Bett-Mitte Y
-sensor_offset_path: mmu.sensors.toolhead  # Dein Sensor
-led_name: Licht               # LED-Name (optional)
-clean_macro: BLOBIFIER_CLEAN  # Reinigung (optional)
-```
-
-**Sensor-Optionen:**
-- `mmu.sensors.toolhead` (MMU)
-- `probe` (TAP)
-- `endstop.z` (Z-Endstop)
 
 ---
 
@@ -238,7 +217,7 @@ Plots werden gespeichert in: `~/printer_data/config/Auto_Offset/Auswertung/`
 
 ### 💡 Intelligente Features
 
-- ⚡ **Gespeicherte Startposition** - 2. Messung fährt direkt zur letzten Position (schnell!)
+- ⚡ **Gespeicherte Startposition** - 2. Messung fährt direkt zur letzten Position
 - 🎯 **Delta-Offset** - Verhindert doppeltes Zählen bei mehrfachen Messungen
 - 📊 **6 Nachkommastellen** - Höhere Präzision für Analysen
 
