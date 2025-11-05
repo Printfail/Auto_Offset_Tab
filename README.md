@@ -26,8 +26,23 @@ curl -sSL https://raw.githubusercontent.com/Printfail/Auto_Offset_Tab/main/insta
 cd ~
 git clone https://github.com/Printfail/Auto_Offset_Tab.git
 cd Auto_Offset_Tab
+chmod +x install.sh  # Execute-Rechte setzen
 ./install.sh
 ```
+
+**Das Menü bietet folgende Optionen:**
+
+| Option | Beschreibung |
+|--------|--------------|
+| **1️⃣ Install** | Installiert Auto_Offset zum ersten Mal (Python-Modul, Config-Dateien) |
+| **2️⃣ Update** | Aktualisiert das Python-Modul (bei Updates via `git pull`) |
+| **3️⃣ Uninstall** | Entfernt Auto_Offset komplett (optional: auch Config löschen) |
+| **4️⃣ Status** | Zeigt Installationsstatus (Python-Modul, Config, Klipper) |
+| **5️⃣ Exit** | Beendet das Menü |
+
+> 💡 **Tipp:** Methode 1 (One-Liner) installiert automatisch ohne Menü!
+
+---
 
 ### **printer.cfg anpassen**
 ```ini
