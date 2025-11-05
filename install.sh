@@ -63,7 +63,8 @@ if [ ! -d "${SCRIPTPATH}/extras" ]; then
     echo ""
     echo -e "${B_GREEN}➜${OFF} Starte Installation aus Repository..."
     cd "${INSTALL_DIR}"
-    exec bash "./install.sh"
+    chmod +x install.sh 2>/dev/null || true  # Setze Execute-Rechte (falls nötig)
+    bash ./install.sh
     exit 0
 fi
 
@@ -126,6 +127,11 @@ print_success() {
 }
 
 ask_yn() {
+    # Bei non-interactive Installation: Auto-Yes
+    if [ "${NON_INTERACTIVE}" = "1" ]; then
+        return 0
+    fi
+    
     while true; do
         read -p "$(echo -e ${CYAN}$1 \(y/n\): ${OFF})" yn
         case $yn in
@@ -197,11 +203,14 @@ check_source_files() {
 #####################################################################
 
 do_install() {
-    show_logo
-    echo -e "${B_YELLOW}═══════════════════════════════════════════════════════${OFF}"
-    echo -e "${B_YELLOW}  INSTALLATION${OFF}"
-    echo -e "${B_YELLOW}═══════════════════════════════════════════════════════${OFF}"
-    echo ""
+    # Bei interaktivem Aufruf: Zeige Logo/Header
+    if [ "${NON_INTERACTIVE}" != "1" ]; then
+        show_logo
+        echo -e "${B_YELLOW}═══════════════════════════════════════════════════════${OFF}"
+        echo -e "${B_YELLOW}  INSTALLATION${OFF}"
+        echo -e "${B_YELLOW}═══════════════════════════════════════════════════════${OFF}"
+        echo ""
+    fi
     
     print_msg "Prüfe Voraussetzungen..."
     check_klipper
@@ -494,4 +503,20 @@ main() {
 }
 
 # Script starten
-main
+# Prüfe ob stdin ein TTY ist (interaktive Shell)
+if [ -t 0 ]; then
+    # Interaktiv → Zeige Menü
+    main
+else
+    # Nicht interaktiv (curl | bash) → Direkt installieren
+    export NON_INTERACTIVE=1
+    show_logo
+    echo -e "${B_YELLOW}═══════════════════════════════════════════════════════${OFF}"
+    echo -e "${B_YELLOW}  AUTO-INSTALLATION (One-Liner)${OFF}"
+    echo -e "${B_YELLOW}═══════════════════════════════════════════════════════${OFF}"
+    echo ""
+    print_info "Keine interaktive Shell erkannt - starte automatische Installation..."
+    echo ""
+    sleep 1
+    do_install
+fi
