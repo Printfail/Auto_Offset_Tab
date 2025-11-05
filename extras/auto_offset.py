@@ -1819,6 +1819,10 @@ class AutoOffset:
     
     def _set_leds(self, r, g, b):
         """Helper to set LED colors"""
+        # Skip wenn led_name leer oder None ist
+        if not self.led_name or self.led_name.strip() == "":
+            return
+        
         try:
             self.gcode.run_script_from_command(f"SET_LED LED={self.led_name} RED={r} GREEN={g} BLUE={b}")
         except Exception as e:
