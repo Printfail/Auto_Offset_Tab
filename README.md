@@ -40,11 +40,13 @@ Zeigt detaillierte Statistiken der aktuellen Messung:
 ## 🚀 Installation
 
 ### **Methode 1: One-Liner (schnell)** ⚡
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/Printfail/Auto_Offset_Tab/main/install.sh | bash
 ```
 
 ### **Methode 2: Manuell (empfohlen)** 📦
+
 ```bash
 cd ~
 git clone https://github.com/Printfail/Auto_Offset_Tab.git
@@ -55,19 +57,20 @@ chmod +x install.sh  # Execute-Rechte setzen
 
 **Das Menü bietet folgende Optionen:**
 
-| Option | Beschreibung |
-|--------|--------------|
-| **1️⃣ Install** | Installiert Auto_Offset zum ersten Mal (Python-Modul, Config-Dateien) |
-| **2️⃣ Update** | Aktualisiert das Python-Modul (bei Updates via `git pull`) |
-| **3️⃣ Uninstall** | Entfernt Auto_Offset komplett (optional: auch Config löschen) |
-| **4️⃣ Status** | Zeigt Installationsstatus (Python-Modul, Config, Klipper) |
-| **5️⃣ Exit** | Beendet das Menü |
+| Option            | Beschreibung                                                           |
+| ----------------- | ---------------------------------------------------------------------- |
+| **1️⃣ Install**   | Installiert Auto Offset zum ersten Mal (Python-Modul + Config-Dateien) |
+| **2️⃣ Update**    | Aktualisiert das Python-Modul (via `git pull`)                         |
+| **3️⃣ Uninstall** | Entfernt Auto Offset komplett (optional inkl. Config)                  |
+| **4️⃣ Status**    | Zeigt Installationsstatus (Python-Modul, Config, Klipper)              |
+| **5️⃣ Exit**      | Beendet das Menü                                                       |
 
-> 💡 **Tipp:** Methode 1 (One-Liner) installiert automatisch ohne Menü!
+> 💡 **Tipp:** Methode 1 installiert automatisch ohne Menüinteraktion.
 
 ---
 
 ### **printer.cfg anpassen**
+
 ```ini
 # Füge hinzu:
 [include Auto_Offset/Auto_Offset_Variables.cfg]
@@ -77,12 +80,23 @@ chmod +x install.sh  # Execute-Rechte setzen
 filename: ~/printer_data/config/variables.cfg
 ```
 
+---
+
 ### **Anpassen & Starten**
 
 Bearbeite `~/printer_data/config/Auto_Offset/Auto_Offset_Variables.cfg`:
-- `measure_x` / `measure_y` (Bett-Mitte!)
-- `sensor_offset_path` (dein Sensor)
-- `led_name`, `clean_macro` (optional)
+
+* `measure_x` / `measure_y` → Position des **Messplatzes** auf dem Bett
+  (normalerweise Bettmitte oder die Koordinaten des zweiten Sensors)
+* `measure_z_lift` → Sicherheits-Hubhöhe vor der Messung
+* `sensor_offset_path` → Pfad zu deinem zweiten Sensor
+  (z. B. `mmu.sensors.toolhead`, `sensorhub`, `probe`)
+* `led_name`, `clean_macro` → optional für LED-Signalisierung oder automatisches Düsenreinigen
+
+> 💡 **Hinweis:**
+> Der **Messplatz** ist die physische Position auf deinem Druckbett, an der der zweite Sensor die Messung durchführt.
+> Diese Koordinaten müssen exakt zu deinem Aufbau passen – idealerweise ein sauberer, plan geschliffener Bereich oder ein kleines Messpad.
+> Ein falsch definierter Messplatz kann fehlerhafte Z-Offsets oder Sensorausfälle verursachen.
 
 ```gcode
 RESTART
