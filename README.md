@@ -84,7 +84,7 @@ filename: ~/printer_data/config/variables.cfg
 
 Bearbeite `~/printer_data/config/Auto_Offset/Auto_Offset_Variables.cfg`:
 
-* `measure_x` / `measure_y` → Position des **Messplatzes** die Koordinaten des zweiten Sensors)
+* `measure_x` / `measure_y` → Position des **Messplatzes** (die Koordinaten des zweiten Sensors)
 * `measure_z_lift` → Sicherheits-Hubhöhe vor der Messung
 * `sensor_pin` → Pin von deinem zweiten Sensor (Messplatz)
 * `led_name`, `clean_macro` → optional für LED-Signalisierung oder automatisches Düsenreinigen
@@ -94,8 +94,8 @@ Bearbeite `~/printer_data/config/Auto_Offset/Auto_Offset_Variables.cfg`:
 > Diese Koordinaten müssen exakt zu deinem Aufbau passen – idealerweise ein sauberer, plan geschliffener Bereich oder ein kleines Messpad.
 > Ein falsch definierter Messplatz kann fehlerhafte Z-Offsets oder Sensorausfälle verursachen.
 > Der Messplatz sollte eine glatte, ebene und leitfähige Fläche sein, die direkt mit dem definierten Sensor-Pin verbunden ist.
-  Die Düse (Nozzle) dient dabei als zweiter Kontakt und wird mit GND (Masse) verbunden.
-  Beim Kontakt zwischen Düse und Messfläche schließt sich der Stromkreis, wodurch der Sensor den Auslösepunkt exakt erkennt.
+> Die Düse (Nozzle) dient dabei als zweiter Kontakt und wird mit GND (Masse) verbunden.
+> Beim Kontakt zwischen Düse und Messfläche schließt sich der Stromkreis, wodurch der Sensor den Auslösepunkt exakt erkennt.
 
 ```gcode
 RESTART
@@ -133,6 +133,40 @@ sensor_pin: ^!PG14
 # OPTION 2: Existierender Sensor (z. B. von MMU)
 #sensor_offset_path: mmu.sensors.toolhead
 ```
+
+---
+
+## 🔄 Auto-Updates (optional)
+
+Für automatische Update-Benachrichtigungen in Mainsail/Fluidd:
+
+### **Moonraker Update Manager aktivieren**
+
+Füge in `~/printer_data/config/moonraker.conf` ein:
+
+```ini
+[update_manager auto_offset]
+type: git_repo
+channel: dev
+path: ~/Auto_Offset_Tab
+origin: https://github.com/Printfail/Auto_Offset_Tab.git
+managed_services: klipper
+primary_branch: main
+install_script: install.sh
+```
+
+Danach Moonraker neu starten:
+
+```bash
+sudo systemctl restart moonraker
+```
+
+✅ **Fertig!** Updates erscheinen jetzt automatisch in der Web-UI!
+
+**Wie es funktioniert:**
+- Moonraker prüft regelmäßig auf neue GitHub-Commits
+- Bei Updates erscheint ein **Update-Button** in Mainsail/Fluidd
+- 1-Klick Installation: `git pull` + `install.sh` + `klipper restart`
 
 ---
 
