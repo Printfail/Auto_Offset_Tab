@@ -14,6 +14,29 @@ Automatische Z-Offset Messung für Klipper
 
 ---
 
+## 📈 Plots & Visualisierung
+
+Das Modul erstellt automatisch **professionelle Plots** deiner Z-Offset Messungen im **Shake&Tune Design**:
+
+### 📊 History Plot
+Zeigt alle bisherigen Messungen über die Zeit - perfekt um Trends zu erkennen:
+
+![History Plot](docs/images/auto_offset_history.png)
+
+### 🎯 Current Plot  
+Zeigt detaillierte Statistiken der aktuellen Messung:
+
+![Current Plot](docs/images/auto_offset_current.png)
+
+**Plot Features:**
+- 📊 Automatische CSV-Speicherung aller Messungen
+- 📈 Trend-Erkennung über Zeit (History)
+- 🎨 Shake&Tune inspiriertes Design
+- 📁 Speicherort: `~/printer_data/config/Auto_Offset/Auswertung/`
+- 🖼️ PNG-Export für Mainsail/Fluidd Ansicht
+
+---
+
 ## 🚀 Installation
 
 ### **Methode 1: One-Liner (schnell)** ⚡
