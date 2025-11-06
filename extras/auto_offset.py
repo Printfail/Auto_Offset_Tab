@@ -2029,8 +2029,9 @@ class AutoOffset:
                     bed_temps.append(float(row['bed_temp']))
             
             # Create figure with professional layout (4 rows: Header + 3 plots)
+            # Temperatur-Plot flacher für mehr Platz bei Z-Offset & Trigger Distance
             fig = plt.figure(figsize=(16, 12))
-            gs = fig.add_gridspec(4, 1, height_ratios=[0.3, 1.5, 1.5, 1.2], hspace=0.35)
+            gs = fig.add_gridspec(4, 1, height_ratios=[0.3, 1.8, 1.8, 0.6], hspace=0.35)
             
             # Header
             ax_header = fig.add_subplot(gs[0])
@@ -2044,67 +2045,87 @@ class AutoOffset:
             
             header_text = f"""AUTO OFFSET - MEASUREMENT HISTORY
 {timestamp_now} | Sensor: Custom MCU Endstop | Probe: Voron TAP
-Last {len(offsets)} measurements | Z-Offset Avg: {avg_offset:.6f} mm (Range: {offset_range:.6f} mm) | Trigger Avg: {avg_trigger:.6f} mm"""
+Last {len(offsets)} measurements | Z-Offset Avg: {avg_offset:.6f} mm (Range: {offset_range:.6f} mm) | Trigger Avg: {avg_trigger:.6f} mm
+X-Achse: Messungen #1-#{len(offsets)} (feste Positionen, unabhängig von Zeit)"""
             
             ax_header.text(0.5, 0.5, header_text, fontsize=10, family='monospace',
                           verticalalignment='center', horizontalalignment='center', bbox=dict(boxstyle='round,pad=0.5', 
                           facecolor='#E8F4F8', edgecolor='#0066CC', linewidth=2))
             
-            # Plot 1: Z-Offset over time
+            # Plot 1: Z-Offset - Balken an festen Positionen
             ax1 = fig.add_subplot(gs[1])
             
-            # Line with markers
-            ax1.plot(timestamps, offsets, 'o-', color='#0066CC', linewidth=2.5, 
-                    markersize=8, markeredgecolor='#003366', markeredgewidth=1.5, label='Z-Offset')
+            # Feste Positionen: 1, 2, 3, ..., N (unabhängig von Zeit!)
+            positions = list(range(1, len(offsets) + 1))
+            
+            # Balken
+            bars1 = ax1.bar(positions, offsets, color='#0066CC', alpha=0.7, 
+                           edgecolor='#003366', linewidth=1.5, width=0.8, label='Z-Offset')
+            
+            # Verlaufslinie über Balken
+            ax1.plot(positions, offsets, 'o-', color='#003366', linewidth=2.5, 
+                    markersize=8, markeredgecolor='white', markeredgewidth=1.5, 
+                    label='Trend', zorder=10)
             
             # Average line
             ax1.axhline(y=avg_offset, color='#FF6B6B', linestyle='--', linewidth=2, 
-                       alpha=0.8, label=f'Average: {avg_offset:.6f} mm', zorder=10)
+                       alpha=0.8, label=f'Average: {avg_offset:.6f} mm', zorder=9)
             
-            # Fill area between min and max
-            ax1.fill_between(timestamps, min(offsets), max(offsets), alpha=0.1, color='#0066CC')
+            # X-Achse Labels: Messungsnummer
+            ax1.set_xticks(positions)
+            ax1.set_xticklabels([f'#{p}' for p in positions], fontsize=10)
             
+            ax1.set_xlabel('Measurement Number', fontsize=12, fontweight='bold')
             ax1.set_ylabel('Z-Offset (mm)', fontsize=12, fontweight='bold')
             ax1.set_title('Z-OFFSET HISTORY', fontsize=13, fontweight='bold', pad=10, color='#0066CC')
-            ax1.grid(True, alpha=0.4, linestyle='--', linewidth=0.8)
+            ax1.grid(True, alpha=0.4, linestyle='--', linewidth=0.8, axis='y')
             ax1.legend(loc='best', fontsize=10, framealpha=0.9)
             
-            # Plot 2: Trigger Distance over time
-            ax2 = fig.add_subplot(gs[2], sharex=ax1)
+            # Plot 2: Trigger Distance - Balken an festen Positionen
+            ax2 = fig.add_subplot(gs[2])
             
-            # Line with markers
-            ax2.plot(timestamps, trigger_distances, 'o-', color='#4ECDC4', linewidth=2.5, 
-                    markersize=8, markeredgecolor='#2A9D8F', markeredgewidth=1.5, label='Trigger Distance')
+            # Balken
+            bars2 = ax2.bar(positions, trigger_distances, color='#4ECDC4', alpha=0.7, 
+                           edgecolor='#2A9D8F', linewidth=1.5, width=0.8, label='Trigger Distance')
+            
+            # Verlaufslinie über Balken
+            ax2.plot(positions, trigger_distances, 'o-', color='#2A9D8F', linewidth=2.5, 
+                    markersize=8, markeredgecolor='white', markeredgewidth=1.5, 
+                    label='Trend', zorder=10)
             
             # Average line
             ax2.axhline(y=avg_trigger, color='#FF6B6B', linestyle='--', linewidth=2, 
-                       alpha=0.8, label=f'Average: {avg_trigger:.6f} mm', zorder=10)
+                       alpha=0.8, label=f'Average: {avg_trigger:.6f} mm', zorder=9)
             
-            # Fill area between min and max
-            ax2.fill_between(timestamps, min(trigger_distances), max(trigger_distances), alpha=0.1, color='#4ECDC4')
+            # X-Achse Labels: Messungsnummer
+            ax2.set_xticks(positions)
+            ax2.set_xticklabels([f'#{p}' for p in positions], fontsize=10)
             
+            ax2.set_xlabel('Measurement Number', fontsize=12, fontweight='bold')
             ax2.set_ylabel('Trigger Distance (mm)', fontsize=12, fontweight='bold')
             ax2.set_title('TRIGGER DISTANCE HISTORY', fontsize=13, fontweight='bold', pad=10, color='#0066CC')
-            ax2.grid(True, alpha=0.4, linestyle='--', linewidth=0.8)
+            ax2.grid(True, alpha=0.4, linestyle='--', linewidth=0.8, axis='y')
             ax2.legend(loc='best', fontsize=10, framealpha=0.9)
             
-            # Plot 3: Temperatures
-            ax3 = fig.add_subplot(gs[3], sharex=ax1)
+            # Plot 3: Temperatures (FLACHER! Nur Übersicht)
+            ax3 = fig.add_subplot(gs[3])
             
-            ax3.plot(timestamps, nozzle_temps, 'o-', color='#FF6347', linewidth=2.5, 
-                    markersize=7, markeredgecolor='#8B0000', markeredgewidth=1.5, label='Nozzle Temp')
-            ax3.plot(timestamps, bed_temps, 's-', color='#4169E1', linewidth=2.5, 
-                    markersize=7, markeredgecolor='#00008B', markeredgewidth=1.5, label='Bed Temp')
+            # Linien (ohne Marker wegen wenig Platz)
+            ax3.plot(positions, nozzle_temps, '-', color='#FF6347', linewidth=2, 
+                    label='Nozzle', marker='o', markersize=5)
+            ax3.plot(positions, bed_temps, '-', color='#4169E1', linewidth=2, 
+                    label='Bed', marker='s', markersize=5)
             
-            ax3.set_ylabel('Temperature (°C)', fontsize=12, fontweight='bold')
-            ax3.set_xlabel('Time', fontsize=12, fontweight='bold')
-            ax3.set_title('TEMPERATURE HISTORY', fontsize=13, fontweight='bold', pad=10, color='#0066CC')
-            ax3.grid(True, alpha=0.4, linestyle='--', linewidth=0.8)
-            ax3.legend(loc='best', fontsize=10, framealpha=0.9)
+            # X-Achse: Datum/Zeit klein unter Balken
+            ax3.set_xticks(positions)
+            datetime_labels = [ts.strftime('%m/%d\n%H:%M') for ts in timestamps]
+            ax3.set_xticklabels(datetime_labels, fontsize=7, rotation=0)
             
-            # Format x-axis
-            ax3.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-            plt.setp(ax3.xaxis.get_majorticklabels(), rotation=45, ha='right')
+            ax3.set_ylabel('Temp (°C)', fontsize=10, fontweight='bold')
+            ax3.set_xlabel('Date/Time', fontsize=10, fontweight='bold')
+            ax3.set_title('TEMPERATURE HISTORY', fontsize=11, fontweight='bold', pad=8, color='#0066CC')
+            ax3.grid(True, alpha=0.4, linestyle='--', linewidth=0.8, axis='y')
+            ax3.legend(loc='best', fontsize=9, framealpha=0.9)
             
             # Save plot with white background
             plot_file = os.path.join(plot_path, 'auto_offset_history.png')
@@ -2129,12 +2150,7 @@ Last {len(offsets)} measurements | Z-Offset Avg: {avg_offset:.6f} mm (Range: {of
             sensor_offset = data.get('sensor_offset', 0.0)
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            # Display offset for plot (1 mm Ausgangswert)
-            # NUR Probe Samples werden für die Darstellung um 1 mm erhöht
-            # Overview-Werte bleiben ECHT (ohne Offset)
-            PLOT_OFFSET = 1.0  # mm
-            
-            # Calculate statistics (echte Werte)
+            # Calculate statistics (echte Werte - KEIN Offset mehr!)
             if len(samples) > 0:
                 mean_sample = sum(samples) / len(samples)
                 min_sample = min(samples)
@@ -2146,15 +2162,16 @@ Last {len(offsets)} measurements | Z-Offset Avg: {avg_offset:.6f} mm (Range: {of
                 max_sample = final_offset
                 range_sample = 0.0
             
-            # Plot-Werte mit Offset (NUR für Probe Samples links!)
-            plot_samples = [s + PLOT_OFFSET for s in samples]
-            plot_mean = mean_sample + PLOT_OFFSET
+            # Echte Werte verwenden (KEIN +1mm Offset mehr!)
+            plot_samples = samples  # Echte Werte!
+            plot_mean = mean_sample  # Echte Werte!
             
             # Create figure with custom layout
             fig = plt.figure(figsize=(16, 10))
             
-            # Create grid for subplots
-            gs = fig.add_gridspec(3, 2, height_ratios=[0.5, 2, 1], hspace=0.3, wspace=0.3)
+            # Create grid for subplots (70% left for samples, 30% right for overview)
+            gs = fig.add_gridspec(3, 2, height_ratios=[0.5, 2, 1], width_ratios=[7, 3], 
+                                hspace=0.3, wspace=0.3)
             
             # Header (spans full width)
             ax_header = fig.add_subplot(gs[0, :])
@@ -2164,7 +2181,7 @@ Last {len(offsets)} measurements | Z-Offset Avg: {avg_offset:.6f} mm (Range: {of
             header_text = f"""AUTO OFFSET - PRECISION Z-CALIBRATION TOOL
 {timestamp} | Sensor: Custom MCU Endstop | Probe: Voron TAP | Samples: {len(samples)}
 Nozzle: {nozzle_temp:.0f}°C | Bed: {bed_temp:.0f}°C | Tolerance: {self.probe_tolerance:.6f} mm
-Probe Samples: Darstellung mit 1 mm Ausgangswert für bessere Visualisierung"""
+Probe Samples: Echte Werte mit Z=0 Referenzlinie | Y-Achse: ±{self.probe_tolerance:.3f} mm"""
             
             ax_header.text(0.5, 0.5, header_text, fontsize=10, family='monospace',
                           verticalalignment='center', horizontalalignment='center', bbox=dict(boxstyle='round,pad=0.5', 
@@ -2178,34 +2195,35 @@ Probe Samples: Darstellung mit 1 mm Ausgangswert für bessere Visualisierung"""
             colors = plt.cm.viridis([(s - min_sample) / (range_sample + 0.000001) for s in samples])
             bars = ax1.bar(sample_nums, plot_samples, color=colors, alpha=0.8, edgecolor='#333333', linewidth=1.5)
             
-            # Add value labels on bars (MIT OFFSET)
+            # Add value labels on bars (echte Werte)
             for i, (bar, val) in enumerate(zip(bars, plot_samples)):
                 height = bar.get_height()
-                ax1.text(bar.get_x() + bar.get_width()/2., height,
-                        f'{val:.6f}', ha='center', va='bottom', fontsize=8, fontweight='bold')
+                # Label oberhalb oder unterhalb je nach Wert
+                if height >= 0:
+                    va = 'bottom'
+                    y_pos = height
+                else:
+                    va = 'top'
+                    y_pos = height
+                ax1.text(bar.get_x() + bar.get_width()/2., y_pos,
+                        f'{val:.6f}', ha='center', va=va, fontsize=8, fontweight='bold')
             
-            # Mean line (MIT OFFSET)
-            ax1.axhline(y=plot_mean, color='#FF6B6B', linestyle='--', linewidth=2, 
-                       label=f'Mean: {plot_mean:.6f} mm', zorder=10)
+            # Z=0 REFERENZLINIE (rot, gestrichelt)
+            ax1.axhline(y=0, color='red', linestyle='--', linewidth=2.5, 
+                       label='Z=0 Reference', zorder=10, alpha=0.8)
             
-            # Tolerance band (MIT OFFSET)
-            tolerance_upper = plot_mean + self.probe_tolerance/2
-            tolerance_lower = plot_mean - self.probe_tolerance/2
-            ax1.axhspan(tolerance_lower, tolerance_upper, alpha=0.2, color='green', 
-                       label=f'Tolerance: ±{self.probe_tolerance/2:.6f} mm')
+            # Mean line (echte Werte)
+            ax1.axhline(y=plot_mean, color='#FF6B6B', linestyle=':', linewidth=2, 
+                       label=f'Mean: {plot_mean:.6f} mm', zorder=9, alpha=0.7)
             
-            # Zoom Y-axis to probe range with padding (MIT OFFSET)
-            plot_min = min(plot_samples)
-            plot_max = max(plot_samples)
-            if range_sample > 0:
-                y_padding = max(0.002, range_sample * 0.3)  # 30% padding or min 2µm
-            else:
-                y_padding = 0.002
-            ax1.set_ylim(plot_min - y_padding, plot_max + y_padding)
+            # Y-Achse: Dynamisch basierend auf probe_tolerance
+            # Zeige ±probe_tolerance um Z=0
+            y_limit = self.probe_tolerance
+            ax1.set_ylim(-y_limit, +y_limit)
             
             ax1.set_xlabel('Sample Number', fontsize=11, fontweight='bold')
             ax1.set_ylabel('Z-Position (mm)', fontsize=11, fontweight='bold')
-            ax1.set_title('PROBE ACCURACY SAMPLES (Zoomed)', fontsize=12, fontweight='bold', 
+            ax1.set_title('PROBE ACCURACY SAMPLES (Z=0 Referenced)', fontsize=12, fontweight='bold', 
                          pad=10, color='#0066CC')
             ax1.grid(True, alpha=0.4, linestyle='--', linewidth=0.8)
             ax1.legend(loc='best', fontsize=9, framealpha=0.9)
