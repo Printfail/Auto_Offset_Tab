@@ -13,28 +13,6 @@ Automatische Z-Offset Messung für Klipper
 
 ---
 
-## 📈 Plots & Visualisierung
-
-Das Modul erstellt automatisch **professionelle Plots** deiner Z-Offset Messung:
-
-### 📊 History Plot
-Zeigt alle bisherigen Messungen über die Zeit - perfekt um Trends zu erkennen:
-
-![History Plot](docs/images/auto_offset_history.png)
-
-### 🎯 Current Plot  
-Zeigt detaillierte Statistiken der aktuellen Messung:
-
-![Current Plot](docs/images/auto_offset_current.png)
-
-**Plot Features:**
-- 📊 Automatische CSV-Speicherung aller Messungen
-- 📈 Trend-Erkennung über Zeit (History)
-- 📁 Speicherort: `~/printer_data/config/Auto_Offset/Auswertung/`
-- 🖼️ PNG-Export für Mainsail/Fluidd Ansicht
-
----
-
 ## 🚀 Installation
 
 ### **Methode 1: One-Liner (schnell)** ⚡
@@ -64,39 +42,6 @@ chmod +x install.sh  # Execute-Rechte setzen
 | **5️⃣ Exit**      | Beendet das Menü                                                       |
 
 > 💡 **Tipp:** Methode 1 installiert automatisch ohne Menüinteraktion.
-
-```
-## 🔄 Auto-Updates (optional)
-
-Für automatische Update-Benachrichtigungen in Mainsail/Fluidd:
-
-### **Moonraker Update Manager aktivieren**
-
-Füge in `~/printer_data/config/moonraker.conf` ein:
-
-```ini
-[update_manager auto_offset]
-type: git_repo
-channel: dev
-path: ~/Auto_Offset_Tab
-origin: https://github.com/Printfail/Auto_Offset_Tab.git
-managed_services: klipper
-primary_branch: main
-install_script: install.sh
-```
-
-Danach Moonraker neu starten:
-
-```bash
-sudo systemctl restart moonraker
-```
-
-✅ **Fertig!** Updates erscheinen jetzt automatisch in der Web-UI!
-
-**Wie es funktioniert:**
-- Moonraker prüft regelmäßig auf neue GitHub-Commits
-- Bei Updates erscheint ein **Update-Button** in Mainsail/Fluidd
-- 1-Klick Installation: `git pull` + `install.sh` + `klipper restart`
 
 ---
 
@@ -166,6 +111,41 @@ sensor_pin: ^!PG14
 # OPTION 2: Existierender Sensor (z. B. von MMU)
 #sensor_offset_path: mmu.sensors.toolhead
 ```
+
+---
+
+## 🔄 Auto-Updates (optional)
+
+Für automatische Update-Benachrichtigungen in Mainsail/Fluidd:
+
+### **Moonraker Update Manager aktivieren**
+
+Füge in `~/printer_data/config/moonraker.conf` ein:
+
+```ini
+[update_manager auto_offset]
+type: git_repo
+channel: dev
+path: ~/Auto_Offset_Tab
+origin: https://github.com/Printfail/Auto_Offset_Tab.git
+managed_services: klipper
+primary_branch: main
+install_script: install.sh
+```
+
+Danach Moonraker neu starten:
+
+```bash
+sudo systemctl restart moonraker
+```
+
+✅ **Fertig!** Updates erscheinen jetzt automatisch in der Web-UI!
+
+**Wie es funktioniert:**
+- Moonraker prüft regelmäßig auf neue GitHub-Commits
+- Bei Updates erscheint ein **Update-Button** in Mainsail/Fluidd
+- 1-Klick Installation: `git pull` + `install.sh` + `klipper restart`
+
 ---
 
 ## 📖 Verwendung
@@ -213,21 +193,25 @@ AUTO_OFFSET_START DEBUG=2
 
 ---
 
-## 📈 Plots
+## 📈 Plots & Visualisierung
 
-Automatisch erstellte Plots:
+Das Modul erstellt automatisch **professionelle Plots** deiner Z-Offset Messung:
 
-**Current Plot:**
-- Probe Accuracy Samples (gezoomt)
-- Measurement Overview (2 Balken: Trigger Distance, Z-Offset)
-- Statistics Table
+### 📊 History Plot
+Zeigt alle bisherigen Messungen über die Zeit - perfekt um Trends zu erkennen:
 
-**History Plot:**
-- Z-Offset über Zeit
-- Trigger Distance über Zeit
-- Temperaturen (Nozzle/Bed)
+![History Plot](docs/images/auto_offset_history.png)
 
-Plots werden gespeichert in: `~/printer_data/config/Auto_Offset/Auswertung/`
+### 🎯 Current Plot  
+Zeigt detaillierte Statistiken der aktuellen Messung:
+
+![Current Plot](docs/images/auto_offset_current.png)
+
+**Plot Features:**
+- 📊 Automatische CSV-Speicherung aller Messungen
+- 📈 Trend-Erkennung über Zeit (History)
+- 📁 Speicherort: `~/printer_data/config/Auto_Offset/Auswertung/`
+- 🖼️ PNG-Export für Mainsail/Fluidd Ansicht
 
 ---
 
@@ -269,6 +253,30 @@ Plots werden gespeichert in: `~/printer_data/config/Auto_Offset/Auswertung/`
 - → Prüfe Pfad: `filename: ~/printer_data/config/variables.cfg`
 
 **Debug:** Nutze `AUTO_OFFSET_START DEBUG=2` für maximale Details
+
+---
+
+## 📋 Changelog
+
+### v1.1 - Plot Optimierungen & Bug Fixes
+
+**🎨 Plot Verbesserungen:**
+- ✅ **Current Plot:** 70:30 Layout (mehr Platz für Probe Accuracy)
+- ✅ **Current Plot:** Z=0 Referenzlinie statt +1mm Offset
+- ✅ **Current Plot:** Dynamische Y-Achse (±`probe_tolerance`)
+- ✅ **History Plot:** Balken statt Zeitachse (feste Positionen #1-#10)
+- ✅ **History Plot:** Verlaufslinie über Balken
+- ✅ **History Plot:** Temperatur-Plot kompakter (mehr Platz für Messwerte)
+
+**🐛 Bug Fixes:**
+- ✅ Sensor Recovery bei gespeicherter Startposition
+- ✅ MCU Overload Prevention (optimierte Ausführungsreihenfolge)
+- ✅ README Formatierung & Moonraker Update Manager Docs
+
+**🔧 Technische Änderungen:**
+- Phase-basierte Ausführung am Messungsende (Moves → Plots → LEDs)
+- Inline-Loop statt Rekursion bei Sensor-Recovery
+- Dynamische Plot-Anpassung an `plot_history_count` Config
 
 ---
 
