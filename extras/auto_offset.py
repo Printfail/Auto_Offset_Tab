@@ -2029,9 +2029,9 @@ class AutoOffset:
                     bed_temps.append(float(row['bed_temp']))
             
             # Create figure with professional layout (4 rows: Header + 3 plots)
-            # Temperatur-Plot flacher für mehr Platz bei Z-Offset & Trigger Distance
+            # Z-Offset & Trigger je -5%, Temp +10% für bessere Proportionen
             fig = plt.figure(figsize=(16, 12))
-            gs = fig.add_gridspec(4, 1, height_ratios=[0.3, 1.8, 1.8, 0.6], hspace=0.35)
+            gs = fig.add_gridspec(4, 1, height_ratios=[0.3, 1.71, 1.71, 0.7], hspace=0.35)
             
             # Header
             ax_header = fig.add_subplot(gs[0])
@@ -2045,8 +2045,7 @@ class AutoOffset:
             
             header_text = f"""AUTO OFFSET - MEASUREMENT HISTORY
 {timestamp_now} | Sensor: Custom MCU Endstop | Probe: Voron TAP
-Last {len(offsets)} measurements | Z-Offset Avg: {avg_offset:.6f} mm (Range: {offset_range:.6f} mm) | Trigger Avg: {avg_trigger:.6f} mm
-X-Achse: Messungen #1-#{len(offsets)} (feste Positionen, unabhängig von Zeit)"""
+Last {len(offsets)} measurements | Z-Offset Avg: {avg_offset:.6f} mm (Range: {offset_range:.6f} mm) | Trigger Avg: {avg_trigger:.6f} mm"""
             
             ax_header.text(0.5, 0.5, header_text, fontsize=10, family='monospace',
                           verticalalignment='center', horizontalalignment='center', bbox=dict(boxstyle='round,pad=0.5', 
@@ -2058,9 +2057,9 @@ X-Achse: Messungen #1-#{len(offsets)} (feste Positionen, unabhängig von Zeit)""
             # Feste Positionen: 1, 2, 3, ..., N (unabhängig von Zeit!)
             positions = list(range(1, len(offsets) + 1))
             
-            # Balken
+            # Balken (dünn für gute Abstände)
             bars1 = ax1.bar(positions, offsets, color='#0066CC', alpha=0.7, 
-                           edgecolor='#003366', linewidth=1.5, width=0.8, label='Z-Offset')
+                           edgecolor='#003366', linewidth=1.5, width=0.5, label='Z-Offset')
             
             # Verlaufslinie über Balken
             ax1.plot(positions, offsets, 'o-', color='#003366', linewidth=2.5, 
@@ -2071,11 +2070,11 @@ X-Achse: Messungen #1-#{len(offsets)} (feste Positionen, unabhängig von Zeit)""
             ax1.axhline(y=avg_offset, color='#FF6B6B', linestyle='--', linewidth=2, 
                        alpha=0.8, label=f'Average: {avg_offset:.6f} mm', zorder=9)
             
-            # X-Achse Labels: Messungsnummer
+            # X-Achse Labels: Messungsnummer (etwas kleiner)
             ax1.set_xticks(positions)
-            ax1.set_xticklabels([f'#{p}' for p in positions], fontsize=10)
+            ax1.set_xticklabels([f'#{p}' for p in positions], fontsize=9)
             
-            ax1.set_xlabel('Measurement Number', fontsize=12, fontweight='bold')
+            ax1.set_xlabel('')  # Kein Label - selbsterklärend!
             ax1.set_ylabel('Z-Offset (mm)', fontsize=12, fontweight='bold')
             ax1.set_title('Z-OFFSET HISTORY', fontsize=13, fontweight='bold', pad=10, color='#0066CC')
             ax1.grid(True, alpha=0.4, linestyle='--', linewidth=0.8, axis='y')
@@ -2084,9 +2083,9 @@ X-Achse: Messungen #1-#{len(offsets)} (feste Positionen, unabhängig von Zeit)""
             # Plot 2: Trigger Distance - Balken an festen Positionen
             ax2 = fig.add_subplot(gs[2])
             
-            # Balken
+            # Balken (dünn für gute Abstände)
             bars2 = ax2.bar(positions, trigger_distances, color='#4ECDC4', alpha=0.7, 
-                           edgecolor='#2A9D8F', linewidth=1.5, width=0.8, label='Trigger Distance')
+                           edgecolor='#2A9D8F', linewidth=1.5, width=0.5, label='Trigger Distance')
             
             # Verlaufslinie über Balken
             ax2.plot(positions, trigger_distances, 'o-', color='#2A9D8F', linewidth=2.5, 
@@ -2097,11 +2096,11 @@ X-Achse: Messungen #1-#{len(offsets)} (feste Positionen, unabhängig von Zeit)""
             ax2.axhline(y=avg_trigger, color='#FF6B6B', linestyle='--', linewidth=2, 
                        alpha=0.8, label=f'Average: {avg_trigger:.6f} mm', zorder=9)
             
-            # X-Achse Labels: Messungsnummer
+            # X-Achse Labels: Messungsnummer (etwas kleiner)
             ax2.set_xticks(positions)
-            ax2.set_xticklabels([f'#{p}' for p in positions], fontsize=10)
+            ax2.set_xticklabels([f'#{p}' for p in positions], fontsize=9)
             
-            ax2.set_xlabel('Measurement Number', fontsize=12, fontweight='bold')
+            ax2.set_xlabel('')  # Kein Label - selbsterklärend!
             ax2.set_ylabel('Trigger Distance (mm)', fontsize=12, fontweight='bold')
             ax2.set_title('TRIGGER DISTANCE HISTORY', fontsize=13, fontweight='bold', pad=10, color='#0066CC')
             ax2.grid(True, alpha=0.4, linestyle='--', linewidth=0.8, axis='y')
